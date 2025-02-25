@@ -8,7 +8,7 @@ customElements.define('continuous-knob', class extends HTMLElement {
 		this.#internals = this.attachInternals();
 		this.attachShadow({mode:'open'}).append(
             E('slot'), 
-            this.#output = E('output'),
+            this.#output = E('output', {part: 'output'}),
             E('link', {rel: 'stylesheet', href: `./drag-knob.css`}),
         );
         this.setup();
