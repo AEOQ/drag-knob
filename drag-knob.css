@@ -1,0 +1,62 @@
+:host {
+    text-align:center;
+    --dark:color-mix(in srgb,var(--light) 35%,black);
+    display:inline-grid; grid-template:'top'auto 'main'4em / 4em; gap:.1em 0;
+    touch-action:none; user-select:none; -webkit-user-select:none; -webkit-user-drag:none;
+    --gap:14;
+}
+:host([title])::before {
+    content:attr(title);
+}
+link,output {
+    grid-area:main;
+    display:block; height:100%;
+    pointer-events:none;
+}
+:where(link,output)::before {
+    content:'';
+    display:block; height:100%;
+    border-radius:9em;
+}
+output {
+    font-size:.8em; 
+    line-height:0;
+
+    &::before {
+        transform:scale(-1);
+        background:conic-gradient(
+            transparent var(--min),
+            var(--dark) var(--min) calc(360deg - var(--min)),
+            transparent calc(360deg - var(--min))
+        ),radial-gradient(var(--dark) 50%,transparent 51%);
+        mask:radial-gradient(black calc(59% - var(--gap)*1%),transparent calc(60% - var(--gap)*1%) 60%,black 61%);
+    }
+}
+link {
+    color:transparent;
+    transform:scale(-1);
+    filter:drop-shadow(0 0 .15em var(--light));
+
+    &::before {
+        background:conic-gradient(
+            transparent var(--min),
+            var(--light) var(--min) var(--angle),
+            transparent var(--angle) calc(360deg - var(--min))
+        );
+        mask:radial-gradient(transparent 60%,black 61%);
+    }
+    :host(.symmetric) &::before {
+        background:conic-gradient(
+            transparent min(180deg,var(--angle)),
+            var(--light) min(180deg,var(--angle)) max(180deg,var(--angle)),
+            transparent max(180deg,var(--angle)) calc(360deg - var(--min))
+        );
+    }
+    &::after {
+        content:'·'; 
+        font-size:2em; font-family:serif;
+        color:var(--light); line-height:calc(var(--gap)*2/75 + .1);
+        position:absolute; inset:.3em;
+        transform:rotate(var(--angle));
+    }
+}
