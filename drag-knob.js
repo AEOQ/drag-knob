@@ -19,12 +19,12 @@ customElements.define('continuous-knob', class extends HTMLElement {
             if (θ != null) {
                 v = (θ - this.minθ) / (this.maxθ - this.minθ) * (this.maxV - this.minV) + this.minV;
             } else {
-                v ??= this.get('value');
-                this.set.angle({v});
+                this.set.angle({v: v ??= this.get('value')});
             }
             v = (Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0);
             this.#internals.setFormValue(parseFloat(this.value = v));
             this.#output.value = v + (this.get('unit') || '');
+            this.dispatchEvent(new InputEvent('change', {bubbles: true}));
         },
         angle: ({v, drag}) => {
             if (v != null) {

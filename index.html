@@ -30,5 +30,6 @@
 </button>
 <input>
 <script>
+    Q('form').onchange=console.log;
     fetch(location.href).then(resp => resp.text()).then(html => Q('textarea').textContent = html)
 </script>
