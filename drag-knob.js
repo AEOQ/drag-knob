@@ -14,7 +14,7 @@ customElements.define('continuous-knob', class extends HTMLElement {
 		this.#internals = this.attachInternals();
 		this.attachShadow({mode: 'open'}).append(
             this.#output = E('output', {part: 'output'}),
-            E('link', {rel: 'stylesheet', href: `./drag-knob.css`}),
+            E('link', {rel: 'stylesheet', href: `https://aeoq.github.io/drag-knob/drag-knob.css`}),
             E('slot'), 
         );
         Object.assign(this, props ?? {});
