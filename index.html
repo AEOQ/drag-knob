@@ -13,6 +13,7 @@
     }
     [name=knob-3] {--light:yellow;}
     [name=speed] {--light:magenta;}
+    [name=choice] {--light:white;}
     textarea {width:100%;height:40em;}
     input {width:26em;}
 </style>
@@ -21,12 +22,13 @@
     <textarea></textarea>
 </details>
 <form>
-    <continuous-knob name="knob-1" min="0" max="100" value="43" snap="25" unit="%"></continuous-knob>
+    <continuous-knob name="knob-1" value="43" snap="25" unit="%"></continuous-knob>
     <continuous-knob name="knob-2" min="-50" max="50" value="43" snap="0"></continuous-knob>
     <continuous-knob name="knob-3" min="0" max="3" step="1">
         <a href="./">Link</a>
     </continuous-knob>
-    <continuous-knob title="Speed" name="speed" step="1"></continuous-knob>
+    <discrete-knob title="Choice" name="choice" value="A" list='["A","B","C","D","E"]'></discrete-knob>
+    <discrete-knob title="Number" name="speed" list="[8,7,6,5,4]"></discrete-knob>
 </form>
 <button onclick="this.nextElementSibling.value=JSON.stringify([...new FormData(document.forms[0])])">
     [...new FormData(document.forms[0])]

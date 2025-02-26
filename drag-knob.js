@@ -7,14 +7,14 @@ window.CSS.registerProperty({
     inherits: true,
     initialValue: "0deg",
 });
-customElements.define('continuous-knob', class extends HTMLElement {
+class Knob extends HTMLElement {
     #internals; #output; #θ;
 	constructor(props) {
 		super();
 		this.#internals = this.attachInternals();
 		this.attachShadow({mode: 'open'}).append(
             this.#output = E('output', {part: 'output'}),
-            E('link', {rel: 'stylesheet', href: `https://aeoq.github.io/drag-knob/drag-knob.css`}),
+            E('link', {rel: 'stylesheet', href: `./drag-knob.css`}),//`https://aeoq.github.io/drag-knob/drag-knob.css`}),
             E('slot'), 
         );
         Object.assign(this, props ?? {});
@@ -24,7 +24,7 @@ customElements.define('continuous-knob', class extends HTMLElement {
     set = {
         value: ({v, θ}) => {
             if (θ != null) {
-                v = this.snap((θ - this.minθ) / (this.maxθ - this.minθ) * (this.maxV - this.minV) + this.minV);
+                v = this.snap(this.θ.to.v(θ));
             } else {
                 this.set.angle({v: this.snap(v ??= this.get('value'))});
             }
@@ -35,7 +35,7 @@ customElements.define('continuous-knob', class extends HTMLElement {
         angle: ({v, drag}) => {
             if (v != null) {
                 this.classList.add('animate');
-                this.#θ = (v - this.minV) / (this.maxV - this.minV) * (this.maxθ - this.minθ) + this.minθ;
+                this.#θ = this.v.to.θ(v);
             } else {
                 this.matches('.fine') && (drag.deltaY /= 10);
                 this.#θ = drag.moveθ = Math.max(this.minθ, Math.min(drag.pressθ - drag.deltaY, this.maxθ));
@@ -48,22 +48,38 @@ customElements.define('continuous-knob', class extends HTMLElement {
     }
     snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
 	connectedCallback() {
-        this.get('value') || this.attributeChangedCallback(null, null, this.minV); 
         new Dragging(this, {
             translate: false,
             press: drag => drag.pressθ = this.#θ,
             move: drag => Math.abs(drag.deltaY) >= 1 && this.set.angle({drag}),
-            lift: () => this.get('step') && this.set.angle({v: this.value})
+            lift: () => (this.get('step') || this.get('list')) && this.set.angle({v: this.value})
         });
 	}
     setup() {
-        this.minθ ??= 35;
-        this.maxθ ??= 360 - this.minθ;
+        E(this).set({'--min': `${this.minθ}deg`});
+    }
+    attributeChangedCallback(_, __, v) {
+        this.set.value({v});
+    }
+    static observedAttributes = ['value'];
+    static formAssociated = true;
+}
+let CKnob, DKnob;
+customElements.define('continuous-knob', CKnob = class extends Knob {
+	constructor(props) {
+		super(props);
+	}
+    connectedCallback() {
+        this.get('value') || this.attributeChangedCallback(null, null, this.minV); 
+        super.connectedCallback();
+    }
+    setup() {
+        this.minθ ??= 35; this.maxθ ??= 360 - this.minθ;
         this.minV = this.get('min') || 0, this.maxV = this.get('max') || 100;
         this.minV == this.maxV * -1 && this.classList.add('symmetric');
         this.step = this.get('step') || 0.01;
-        E(this).set({'--min': `${this.minθ}deg`});
         this.events();
+        super.setup();
     }
     events() {
         let snap = this.get('snap');
@@ -73,9 +89,33 @@ customElements.define('continuous-knob', class extends HTMLElement {
         }
         /iPad|iPhone/.test(navigator.userAgent) && (this.ontouchend = ev => DoubleTapping(ev, this));
     }
-    attributeChangedCallback(_, __, v) {
-        this.set.value({v});
+    θ = {
+        to: {v: θ => (θ - this.minθ) / (this.maxθ - this.minθ) * (this.maxV - this.minV) + this.minV}
     }
-    static observedAttributes = ['value'];
-    static formAssociated = true;
+    v = {
+        to: {θ: v => (v - this.minV) / (this.maxV - this.minV) * (this.maxθ - this.minθ) + this.minθ}
+    }
 });
+customElements.define('discrete-knob', DKnob = class extends Knob {
+    constructor(props) {
+		super(props);
+        this.list = JSON.parse(this.get('list'));
+        let gradient = this.list.map(this.v.to.θ).map(θ => `${θ-2}deg, var(--light) ${θ-2}deg ${θ+2}deg, transparent ${θ+2}deg `).join('');
+        E(this.sQ('link')).set({'--gradient': `conic-gradient(transparent ${gradient})`});
+	}
+    connectedCallback() {
+        this.get('value') || this.attributeChangedCallback(null, null, this.list[0]); 
+        super.connectedCallback();
+    }
+    setup() {
+        this.minθ ??= 90; this.maxθ ??= 360 - this.minθ;
+    }
+    θ = {
+        to: {v: θ => this.list[Math.round((θ - this.minθ) / (this.maxθ - this.minθ) * (this.list.length - 1))]}
+    }
+    v = {
+        to: {θ: v => this.list.indexOf(v) / (this.list.length - 1) * (this.maxθ - this.minθ) + this.minθ}
+    }
+    snap = v => v
+});
+export {CKnob, DKnob};
