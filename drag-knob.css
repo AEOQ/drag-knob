@@ -5,6 +5,7 @@
     touch-action:none; user-select:none; -webkit-user-select:none; -webkit-user-drag:none;
     --gap:14;
 }
+:host(.animate) {transition:--angle .5s;}
 :host([title])::before {
     content:attr(title);
 }
@@ -12,11 +13,18 @@ link,output {
     grid-area:main;
     display:block; height:100%;
     pointer-events:none;
+    position:relative;
 }
 :where(link,output)::before {
     content:'';
     display:block; height:100%;
     border-radius:9em;
+}
+:where(link,output)::after {
+    content:'';
+    position:absolute;
+    border-radius:9em;
+    transform:rotate(var(--angle));
 }
 output {
     font-size:.8em; 
@@ -30,6 +38,10 @@ output {
             transparent calc(360deg - var(--min))
         ),radial-gradient(var(--dark) 50%,transparent 51%);
         mask:radial-gradient(black calc(59% - var(--gap)*1%),transparent calc(60% - var(--gap)*1%) 60%,black 61%);
+    }
+    &::after {
+        content:'';
+        inset:calc(3em/85*var(--gap) + 69em/170);
     }
 }
 link {
@@ -56,7 +68,6 @@ link {
         content:'·'; 
         font-size:2em; font-family:serif;
         color:var(--light); line-height:calc(var(--gap)*2/75 + .1);
-        position:absolute; inset:.3em;
-        transform:rotate(var(--angle));
+        inset:.3em;
     }
 }
