@@ -1,5 +1,5 @@
 import {A,E,O,Q} from '../AEOQ.mjs';
-import {Dragging, DoubleTapping} from '../drag.mjs';
+import {PointerInteraction} from '../pointer-interaction/script.js';
 
 window.CSS.registerProperty({
     name: "--angle",
@@ -14,7 +14,7 @@ class Knob extends HTMLElement {
 		this.#internals = this.attachInternals();
 		this.attachShadow({mode: 'open'}).append(
             this.#output = E('output', {part: 'output'}),
-            E('link', {rel: 'stylesheet', href: `./drag-knob.css`}),//`https://aeoq.github.io/drag-knob/drag-knob.css`}),
+            E('link', {rel: 'stylesheet', href: `https://aeoq.github.io/drag-knob/style.css`}),
             E('slot'), 
         );
         Object.assign(this, props ?? {});
@@ -32,14 +32,14 @@ class Knob extends HTMLElement {
             this.#output.value = v + (this.get('unit') || '');
             this.dispatchEvent(new InputEvent('input', {bubbles: true}));
         },
-        angle: ({v, drag}) => {
+        angle: ({v, PI}) => {
             if (v != null) {
                 this.classList.add('animate');
                 this.#θ = this.v.to.θ(v);
             } else {
                 this.matches('.fine') && (drag.deltaY /= 10);
-                this.#θ = drag.moveθ = Math.max(this.minθ, Math.min(drag.pressθ - drag.deltaY, this.maxθ));
-                (drag.moveθ == this.minθ || drag.moveθ == this.maxθ) && ([drag.pressY, drag.pressθ] = [drag.moveY, drag.moveθ]);
+                this.#θ = PI.$drag.θ = Math.max(this.minθ, Math.min(PI.$press.θ - PI.$drag.dy, this.maxθ));
+                (PI.$drag.θ == this.minθ || PI.$drag.θ == this.maxθ) && ([PI.$press.y, PI.$press.θ] = [PI.$drag.y, PI.$drag.θ]);
                 this.set.value({θ: this.#θ});
             }
             E(this).set({'--angle': `${this.#θ}deg`});
@@ -48,10 +48,10 @@ class Knob extends HTMLElement {
     }
     snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
 	connectedCallback() {
-        new Dragging(this, {
-            translate: false,
-            press: drag => drag.pressθ = this.#θ,
-            move: drag => Math.abs(drag.deltaY) >= 1 && this.set.angle({drag}),
+        new PointerInteraction(this, {
+            dblclick: dblclick => dblclick.to(() => this.dblclick?.()),
+            press: PI => PI.$press.θ = this.#θ,
+            drag: PI => Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI}),
             lift: () => (this.get('step') || this.get('list')) && this.set.angle({v: this.value})
         });
 	}
@@ -78,22 +78,17 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
         this.minV = this.get('min') || 0, this.maxV = this.get('max') || 100;
         this.minV == this.maxV * -1 && this.classList.add('symmetric');
         this.step = this.get('step') || 0.01;
-        this.events();
         super.setup();
-    }
-    events() {
-        let snap = this.get('snap');
-        this.ondblclick = ev => {
-            ev.preventDefault();
-            this.set.value({v: snap ? Math.round(this.value / snap) * snap : 0});
-        }
-        /iPad|iPhone/.test(navigator.userAgent) && (this.ontouchend = ev => DoubleTapping(ev, this));
     }
     θ = {
         to: {v: θ => (θ - this.minθ) / (this.maxθ - this.minθ) * (this.maxV - this.minV) + this.minV}
     }
     v = {
         to: {θ: v => (v - this.minV) / (this.maxV - this.minV) * (this.maxθ - this.minθ) + this.minθ}
+    }
+    dblclick() {
+        let snap = this.get('snap');
+        this.set.value({v: snap ? Math.round(this.value / snap) * snap : 0});
     }
 });
 customElements.define('discrete-knob', DKnob = class extends Knob {
