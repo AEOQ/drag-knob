@@ -7,9 +7,8 @@
 :host(continuous-knob) {--gap:14; --ring:39;}
 :host(discrete-knob) {--gap:8; --ring:45;}
 :host(.animate) {transition:--angle .5s;}
-:host([title])::before {
-    content:attr(title);
-}
+:host([title])::before {content:attr(title);}
+::slotted(*) {z-index:1;}
 link,output {
     grid-area:main;
     display:block; height:100%;
