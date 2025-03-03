@@ -9,6 +9,10 @@
 :host(.animate) {transition:--angle .5s;}
 :host([title])::before {content:attr(title);}
 ::slotted(*) {z-index:1;}
+::slotted(.center) {
+    grid-area:main; justify-self:center; align-self:center;
+    pointer-events:none;
+}
 link,output {
     grid-area:main;
     display:block; height:100%;
