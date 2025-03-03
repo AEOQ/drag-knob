@@ -9,16 +9,16 @@ window.CSS.registerProperty({
 });
 class Knob extends HTMLElement {
     #internals; #output; #θ;
-	constructor(props) {
-		super();
-		this.#internals = this.attachInternals();
-		this.attachShadow({mode: 'open'}).append(
+    constructor(props) {
+	super();
+	this.#internals = this.attachInternals();
+	this.attachShadow({mode: 'open'}).append(
             this.#output = E('output', {part: 'output'}),
             E('link', {rel: 'stylesheet', href: `https://aeoq.github.io/drag-knob/style.css`}),
             E('slot'), 
-        );
+	);
         Object.assign(this, props ?? {});
-	}
+    }
     get = attr => this[attr] ?? (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
     set = {
         value: ({v, θ}) => {
@@ -66,12 +66,12 @@ class Knob extends HTMLElement {
 }
 let CKnob, DKnob;
 customElements.define('continuous-knob', CKnob = class extends Knob {
-	constructor(props) {
-		super(props);
-	}
+    constructor(props) {
+	super(props);
+    }
     connectedCallback() {
         super.connectedCallback();
-        this.get('value') || this.attributeChangedCallback(null, null, this.minV); 
+        this.attributeChangedCallback(null, null, this.get('value') ?? this.minV); 
     }
     setup() {
         this.minθ ??= 35;
@@ -95,11 +95,11 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
 });
 customElements.define('discrete-knob', DKnob = class extends Knob {
     constructor(props) {
-		super(props);
-	}
+	super(props);
+    }
     connectedCallback() {
         super.connectedCallback();
-        this.get('value') || this.attributeChangedCallback(null, null, this.list[0]); 
+        this.attributeChangedCallback(null, null, this.get('value') ?? this.list[0]); 
     }
     setup() {
         this.minθ ??= 90;
