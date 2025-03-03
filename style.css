@@ -9,7 +9,9 @@
 :host(.animate) {transition:--angle .5s;}
 :host([title])::before {content:attr(title);}
 ::slotted(*) {z-index:1;}
-::slotted(.center) {
+:host([data-icon])::after,::slotted(.center) {
+    content:attr(data-icon);
+    z-index:1;
     grid-area:main; justify-self:center; align-self:center;
     pointer-events:none;
 }
