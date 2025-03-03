@@ -35,5 +35,6 @@
 </button>
 <input>
 <script>
+    Q('[name=knob-2]').click = click => click.for(3).to(() => console.log(3));
     fetch(location.href).then(resp => resp.text()).then(html => Q('textarea').textContent = html)
 </script>

@@ -49,10 +49,10 @@ class Knob extends HTMLElement {
     snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
 	connectedCallback() {
         PointerInteraction.events([[this, {
-            click: click => click.for(2).to(() => this.dblclick?.()),
-            press: PI => PI.$press.θ = this.#θ,
-            drag: PI => Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI}),
-            lift: () => (this.get('step') || this.get('list')) && this.set.angle({v: this.value})
+            click: click => click.for(2).to(() => this.dblclick?.()).chain(this.click),
+            press: PI => [PI.$press.θ = this.#θ, this.press?.(PI)],
+            drag: PI => [Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI}), this.drag?.(PI)],
+            lift: PI => [(this.get('step') || this.get('list')) && this.set.angle({v: this.value}), this.lift?.(PI)]
         }]]);
 	}
     setup() {
