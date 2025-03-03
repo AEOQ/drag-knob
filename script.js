@@ -18,9 +18,8 @@ class Knob extends HTMLElement {
             E('slot'), 
         );
         Object.assign(this, props ?? {});
-        this.setup();
 	}
-    get = attr => (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
+    get = attr => this[attr] ?? (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
     set = {
         value: ({v, θ}) => {
             if (θ != null) {
@@ -48,6 +47,7 @@ class Knob extends HTMLElement {
     }
     snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
 	connectedCallback() {
+        this.setup();
         PointerInteraction.events([[this, {
             click: click => click.for(2).to(() => this.dblclick?.()).chain(this.click),
             press: PI => [PI.$press.θ = this.#θ, this.press?.(PI)],
@@ -59,7 +59,7 @@ class Knob extends HTMLElement {
         E(this).set({'--min': `${this.minθ}deg`});
     }
     attributeChangedCallback(_, __, v) {
-        this.set.value({v});
+        setTimeout(() => this.set.value({v}));
     }
     static observedAttributes = ['value'];
     static formAssociated = true;
@@ -70,12 +70,14 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
 		super(props);
 	}
     connectedCallback() {
-        this.get('value') || this.attributeChangedCallback(null, null, this.minV); 
         super.connectedCallback();
+        this.get('value') || this.attributeChangedCallback(null, null, this.minV); 
     }
     setup() {
-        this.minθ ??= 35; this.maxθ ??= 360 - this.minθ;
-        this.minV = this.get('min') || 0, this.maxV = this.get('max') || 100;
+        this.minθ ??= 35;
+        this.maxθ ??= 360 - this.minθ;
+        this.minV = this.get('min') || 0;
+        this.maxV = this.get('max') || 100;
         this.minV == this.maxV * -1 && this.classList.add('symmetric');
         this.step = this.get('step') || 0.01;
         super.setup();
@@ -94,16 +96,17 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
 customElements.define('discrete-knob', DKnob = class extends Knob {
     constructor(props) {
 		super(props);
+	}
+    connectedCallback() {
+        super.connectedCallback();
+        this.get('value') || this.attributeChangedCallback(null, null, this.list[0]); 
+    }
+    setup() {
+        this.minθ ??= 90;
+        this.maxθ ??= 360 - this.minθ;
         this.list = JSON.parse(this.get('list'));
         let gradient = this.list.map(this.v.to.θ).map(θ => `${θ-2}deg, var(--light) ${θ-2}deg ${θ+2}deg, transparent ${θ+2}deg `).join('');
         E(this.sQ('link')).set({'--gradient': `conic-gradient(transparent ${gradient})`});
-	}
-    connectedCallback() {
-        this.get('value') || this.attributeChangedCallback(null, null, this.list[0]); 
-        super.connectedCallback();
-    }
-    setup() {
-        this.minθ ??= 90; this.maxθ ??= 360 - this.minθ;
     }
     θ = {
         to: {v: θ => this.list[Math.round((θ - this.minθ) / (this.maxθ - this.minθ) * (this.list.length - 1))]}
