@@ -10,22 +10,25 @@ window.CSS.registerProperty({
 class Knob extends HTMLElement {
     #internals; #output; #θ; #fine;
     constructor(props) {
-	super();
-	this.#internals = this.attachInternals();
-	this.attachShadow({mode: 'open'}).append(
+        super();
+        this.#internals = this.attachInternals();
+        this.attachShadow({mode: 'open'}).append(
             this.#output = E('output', {part: 'output'}),
             E('link', {rel: 'stylesheet', href: `https://aeoq.github.io/drag-knob/style.css`}),
             E('slot'), 
-	);
+	    );
         Object.assign(this, props ?? {});
+        Object.assign(this.set, this.#set);
     }
     get = attr => (typeof this[attr] == 'function' ? null : this[attr]) ?? (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
-    set = {
+    set = (attr, value) => this.setAttribute(attr, value);
+    #set = {
         value: ({v, θ}) => {
             if (θ != null) {
-                v = this.snap(this.θ.to.v(θ));
+                v = this.snap?.(this.θ.to.v(θ)) ?? this.θ.to.v(θ);
             } else {
-                this.set.angle({v: this.snap(v ??= this.get('value'))});
+                v ??= this.get('value');
+                this.set.angle({v: this.snap?.(v) ?? v});
             }
             this.#internals.setFormValue(this.value = v);
             this.#output.value = v + (this.get('unit') || '');
@@ -44,7 +47,6 @@ class Knob extends HTMLElement {
             setTimeout(() => this.classList.remove('animate'), 500);
         }
     }
-    snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
     connectedCallback() {
         this.setup();
         PointerInteraction.events([[this, {
@@ -98,6 +100,7 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
     v = {
         to: {θ: v => (v - this.minV) / (this.maxV - this.minV) * (this.maxθ - this.minθ) + this.minθ}
     }
+    snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
     dblclick() {
         let snap = this.get('snap');
         this.set.value({v: snap ? Math.round(this.value / snap) * snap : 0});
@@ -124,6 +127,5 @@ customElements.define('discrete-knob', DKnob = class extends Knob {
     v = {
         to: {θ: v => this.list.indexOf(v) / (this.list.length - 1) * (this.maxθ - this.minθ) + this.minθ}
     }
-    snap = v => v
 });
 export {CKnob, DKnob};
