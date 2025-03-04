@@ -19,7 +19,7 @@ class Knob extends HTMLElement {
 	);
         Object.assign(this, props ?? {});
     }
-    get = attr => this[attr] ?? (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
+    get = attr => (typeof this[attr] == 'function' ? null : this[attr]) ?? (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
     set = {
         value: ({v, θ}) => {
             if (θ != null) {
@@ -49,13 +49,23 @@ class Knob extends HTMLElement {
         this.setup();
         PointerInteraction.events([[this, {
             click: click => click.for(2).to(() => this.dblclick?.()).chain(this.click.toString().includes('native') ? null : this.click),
-            press: PI => [PI.$press.θ = this.#θ, this.#fine = this.matches('.fine'), this.press?.(PI)],
-            drag: PI => [Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI}), this.drag?.(PI)],
-            lift: PI => [(this.get('step') || this.get('list')) && this.set.angle({v: this.value}), this.lift?.(PI)]
+            press: PI => {
+                PI.$press.θ = this.#θ;
+                this.#fine = this.matches('.fine');
+                this.press?.(PI);
+            },
+            drag: PI => {
+                Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI});
+                this.drag?.(PI);
+            },
+            lift: PI => {
+                (this.get('step') || this.get('list')) && this.set.angle({v: this.value});
+                this.lift?.(PI);
+            }
         }]]);
 	}
     setup() {
-	this.name = this.get('name');
+	    this.name = this.get('name');
         E(this).set({'--min': `${this.minθ}deg`});
     }
     attributeChangedCallback(_, __, v) {
@@ -67,7 +77,7 @@ class Knob extends HTMLElement {
 let CKnob, DKnob;
 customElements.define('continuous-knob', CKnob = class extends Knob {
     constructor(props) {
-	super(props);
+	    super(props);
     }
     connectedCallback() {
         super.connectedCallback();
@@ -95,7 +105,7 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
 });
 customElements.define('discrete-knob', DKnob = class extends Knob {
     constructor(props) {
-	super(props);
+	    super(props);
     }
     connectedCallback() {
         super.connectedCallback();
