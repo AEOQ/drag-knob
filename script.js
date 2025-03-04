@@ -8,7 +8,7 @@ window.CSS.registerProperty({
     initialValue: "0deg",
 });
 class Knob extends HTMLElement {
-    #internals; #output; #θ;
+    #internals; #output; #θ; #fine;
     constructor(props) {
 	super();
 	this.#internals = this.attachInternals();
@@ -36,8 +36,7 @@ class Knob extends HTMLElement {
                 this.classList.add('animate');
                 this.#θ = this.v.to.θ(v);
             } else {
-                this.matches('.fine') && (drag.deltaY /= 10);
-                this.#θ = PI.$drag.θ = Math.max(this.minθ, Math.min(PI.$press.θ - PI.$drag.dy, this.maxθ));
+                this.#θ = PI.$drag.θ = Math.max(this.minθ, Math.min(PI.$press.θ - PI.$drag.dy / (this.#fine ? 10 : 1), this.maxθ));
                 (PI.$drag.θ == this.minθ || PI.$drag.θ == this.maxθ) && ([PI.$press.y, PI.$press.θ] = [PI.$drag.y, PI.$drag.θ]);
                 this.set.value({θ: this.#θ});
             }
@@ -50,7 +49,7 @@ class Knob extends HTMLElement {
         this.setup();
         PointerInteraction.events([[this, {
             click: click => click.for(2).to(() => this.dblclick?.()).chain(this.click.toString().includes('native') ? null : this.click),
-            press: PI => [PI.$press.θ = this.#θ, this.press?.(PI)],
+            press: PI => [PI.$press.θ = this.#θ, this.#fine = this.matches('.fine'), this.press?.(PI)],
             drag: PI => [Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI}), this.drag?.(PI)],
             lift: PI => [(this.get('step') || this.get('list')) && this.set.angle({v: this.value}), this.lift?.(PI)]
         }]]);
