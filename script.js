@@ -45,7 +45,7 @@ class Knob extends HTMLElement {
         }
     }
     snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
-	connectedCallback() {
+    connectedCallback() {
         this.setup();
         PointerInteraction.events([[this, {
             click: click => click.for(2).to(() => this.dblclick?.()).chain(this.click.toString().includes('native') ? null : this.click),
@@ -55,6 +55,7 @@ class Knob extends HTMLElement {
         }]]);
 	}
     setup() {
+	this.name = this.get('name');
         E(this).set({'--min': `${this.minθ}deg`});
     }
     attributeChangedCallback(_, __, v) {
