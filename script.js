@@ -1,7 +1,7 @@
 import {A,E,O,Q} from '../AEOQ.mjs';
 import {PointerInteraction} from '../pointer-interaction/script.js';
 
-window.CSS.registerProperty({
+CSS.registerProperty({
     name: "--angle",
     syntax: "<angle>",
     inherits: true,

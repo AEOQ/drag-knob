@@ -2,7 +2,6 @@
 <title>Drag Knob</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="/AEOQ.js"></script>
 <script src="script.js" type="module"></script>
 <style>
     form {background:black; color:white; display:flex; gap:0 .5em; padding:1em;}
@@ -34,7 +33,7 @@
     [...new FormData(document.forms[0])]
 </button>
 <input>
-<script>
-    Q('[name=knob-2]').click = click => click.for(3).to(() => console.log(3));
-    fetch(location.href).then(resp => resp.text()).then(html => Q('textarea').textContent = html)
+<script type="module">
+import {A,E,O,Q} from './AEOQ.mjs';
+fetch(location.href).then(resp => resp.text()).then(html => Q('textarea').textContent = html)
 </script>
