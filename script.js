@@ -68,7 +68,6 @@ class Knob extends HTMLElement {
 	}
     setup() {
 	    this.name = this.get('name');
-        E(this).set({'--min': `${this.minθ}deg`});
     }
     attributeChangedCallback(_, __, v) {
         setTimeout(() => this.set.value({v}));
@@ -92,6 +91,7 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
         this.maxV = this.get('max') || 100;
         this.minV == this.maxV * -1 && this.classList.add('symmetric');
         this.step = this.get('step') || 0.01;
+        E(this).set({'--min': `${this.minθ}deg`});
         super.setup();
     }
     θ = {
@@ -120,6 +120,7 @@ customElements.define('discrete-knob', DKnob = class extends Knob {
         this.list = JSON.parse(this.get('list'));
         let gradient = this.list.map(this.v.to.θ).map(θ => `${θ-2}deg, var(--light) ${θ-2}deg ${θ+2}deg, transparent ${θ+2}deg `).join('');
         E(this.sQ('link')).set({'--gradient': `conic-gradient(transparent ${gradient})`});
+        super.setup();
     }
     θ = {
         to: {v: θ => this.list[Math.round((θ - this.minθ) / (this.maxθ - this.minθ) * (this.list.length - 1))]}
