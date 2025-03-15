@@ -1,5 +1,5 @@
 import {A,E,O,Q} from '../AEOQ.mjs';
-import {PointerInteraction} from '../pointer-interaction/script.js';
+import PointerInteraction from '../pointer-interaction/script.js';
 
 CSS.registerProperty({
     name: "--angle",
