@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<title>Drag Knob</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="script.js" type="module"></script>
+<style>
+    form {background:black; color:white; display:flex; gap:0 .5em; padding:1em;}
+    [name=knob-1] {--light:lime;}
+    [name=knob-2] {
+        --light:turquoise;
+        &::part(output)::after {background:conic-gradient(#a3a3a8,#e0eaf1,#a3a3a8,#e0eaf1,#a3a3a8,#e0eaf1,#a3a3a8,#e0eaf1,#a3a3a8,#e0eaf1,#a3a3a8);}
+    }
+    [name=knob-3] {--light:yellow;}
+    [name=speed] {--light:magenta;}
+    [name=choice] {--light:white;}
+    textarea {width:100%;height:40em;}
+    input {width:26em;}
+</style>
+<details>
+    <summary>View source</summary>
+    <textarea></textarea>
+</details>
+<form>
+    <continuous-knob name="knob-1" value="43" snap="25" unit="%"></continuous-knob>
+    <continuous-knob name="knob-2" min="-50" max="50" value="43" snap="0"></continuous-knob>
+    <continuous-knob name="knob-3" min="0" max="3" step="1">
+        <a href="./">Link</a>
+    </continuous-knob>
+    <discrete-knob title="Choice" name="choice" value="A" list='["A","B","C","D","E"]'></discrete-knob>
+    <discrete-knob title="Number" name="speed" list="[8,7,6,5,4]"></discrete-knob>
+</form>
+<button onclick="this.nextElementSibling.value=JSON.stringify([...new FormData(document.forms[0])])">
+    [...new FormData(document.forms[0])]
+</button>
+<input>
+<script type="module">
+import {A,E,O,Q} from '../AEOQ.mjs';
+fetch(location.href).then(resp => resp.text()).then(html => Q('textarea').textContent = html)
+</script>
