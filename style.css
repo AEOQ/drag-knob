@@ -66,8 +66,8 @@ link {
     &::before {
         background:conic-gradient(
             transparent var(--min),
-            var(--light) var(--min) var(--angle),
-            transparent var(--angle) var(--max, calc(360deg - var(--min)))
+            var(--light) var(--min) min(var(--angle), 360deg - var(--min)),
+            transparent min(var(--angle), 360deg - var(--min)) var(--max, calc(360deg - var(--min)))
         );
         mask:radial-gradient(
             transparent calc(99% - var(--ring)*1%),
@@ -77,9 +77,9 @@ link {
     }
     :host(.symmetric) &::before {
         background:conic-gradient(
-            transparent min(180deg,var(--angle)),
-            var(--light) min(180deg,var(--angle)) max(180deg,var(--angle)),
-            transparent max(180deg,var(--angle)) var(--max, calc(360deg - var(--min)))
+            transparent clamp(var(--min), var(--angle), 180deg),
+            var(--light) clamp(var(--min), var(--angle), 180deg) clamp(180deg, var(--angle), 360deg - var(--min)),
+            transparent clamp(180deg, var(--angle), 360deg - var(--min)) var(--max, calc(360deg - var(--min)))
         );
     }
     :host(discrete-knob) &::before {

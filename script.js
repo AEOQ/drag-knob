@@ -37,7 +37,7 @@ class Knob extends HTMLElement {
         angle: ({v, PI}) => {
             if (v != null) {
                 this.classList.add('animate');
-                this.#θ = this.v.to.θ(v);
+                this.#θ = Math.max(0, Math.min(this.v.to.θ(v), 360));
             } else {
                 this.#θ = PI.$drag.θ = Math.max(this.minθ, Math.min(PI.$press.θ - PI.$drag.dy / (this.#fine ? 10 : 1), this.maxθ));
                 (PI.$drag.θ == this.minθ || PI.$drag.θ == this.maxθ) && ([PI.$press.y, PI.$press.θ] = [PI.$drag.y, PI.$drag.θ]);
