@@ -8,30 +8,31 @@ CSS.registerProperty({
     initialValue: "0deg",
 });
 class Knob extends HTMLElement {
-    #internals; #output; #θ; #fine;
+    #internals; #θ; #fine;
     constructor(props) {
         super();
         this.#internals = this.attachInternals();
         this.attachShadow({mode: 'open'}).append(
-            this.#output = E('output', {part: 'output'}),
+            this.output = E('output', {part: 'output'}),
             E('link', {rel: 'stylesheet', href: `https://aeoq.github.io/drag-knob/style.css`}),
             E('slot'), 
 	    );
         Object.assign(this, props ?? {});
         Object.assign(this.set, this.#set);
     }
-    get = attr => (typeof this[attr] == 'function' ? null : this[attr]) ?? (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
+    get = attr => (typeof this[attr] == 'function' ? null : this[attr]) ?? this.#get(attr);
+    #get = attr => (v => isNaN(parseFloat(v)) ? v : parseFloat(v))(this.getAttribute(attr));
     set = (attr, value) => this.setAttribute(attr, value);
     #set = {
         value: ({v, θ}) => {
             if (θ != null) {
-                v = this.snap?.(this.θ.to.v(θ)) ?? this.θ.to.v(θ);
+                v = this.round?.(this.θ.to.v(θ)) ?? this.θ.to.v(θ);
             } else {
                 v ??= this.get('value');
-                this.set.angle({v: this.snap?.(v) ?? v});
+                this.set.angle({v: this.round?.(v) ?? v});
             }
             this.#internals.setFormValue(this.value = v);
-            this.#output.value = v + (this.get('unit') || '');
+            this.output.Q('input') || (this.output.value = v + (this.get('unit') || ''));
             this.dispatchEvent(new InputEvent('input', {bubbles: true}));
         },
         angle: ({v, PI}) => {
@@ -50,14 +51,13 @@ class Knob extends HTMLElement {
     connectedCallback() {
         this.setup();
         PointerInteraction.events([[this, {
-            click: click => click.for(2).to(() => this.dblclick?.()).chain(this.click.toString().includes('native') ? null : this.click),
             press: PI => {
                 PI.$press.θ = this.#θ;
                 this.#fine = this.matches('.fine');
                 this.press?.(PI);
             },
             drag: PI => {
-                Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI});
+                this.output.Q('input') || Math.abs(PI.$drag.dy) >= 1 && this.set.angle({PI});
                 this.drag?.(PI);
             },
             lift: PI => {
@@ -82,7 +82,12 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
     }
     connectedCallback() {
         super.connectedCallback();
-        this.attributeChangedCallback(null, null, this.get('value') ?? this.minV); 
+        this.attributeChangedCallback(null, null, this.get('value') ?? this.minV);
+        this.snap = JSON.parse(this.get('snap'));
+        PointerInteraction.events([[this, {
+            click: click => click.for(2).to(() => this.#snap()),
+            hold: hold => hold.for(1).to(() => this.#edit())
+        }]]);
     }
     setup() {
         this.minθ ??= 35;
@@ -100,10 +105,26 @@ customElements.define('continuous-knob', CKnob = class extends Knob {
     v = {
         to: {θ: v => (v - this.minV) / (this.maxV - this.minV) * (this.maxθ - this.minθ) + this.minθ}
     }
-    snap = v => parseFloat((Math.round(v / this.step) * this.step).toFixed(`${this.step}`.split('.')[1]?.length ?? 0))
-    dblclick() {
-        let snap = this.get('snap');
-        this.set.value({v: snap ? Math.round(this.value / snap) * snap : 0});
+    round(v, step = this.step) {
+        const factor = Math.pow(10, `${step}`.split('.')[1]?.length ?? 0);
+        return Math.round(Math.round(v / step) * (step * factor)) / factor;
+    }
+    #edit() {
+        let previous = parseFloat(this.output.value);
+        let input = E('input', {
+            type: 'number', value: previous, step: this.step,
+            onchange: () => this.set.value({v: input.value === '' ? previous : input.value}),
+            onblur: () => [input.remove(), input.onchange()],
+        });
+        this.output.replaceChildren(input);
+        input.focus();
+    }
+    #snap() {
+        let {snap, value} = this;
+        let target = snap ? typeof snap == 'number' ? 
+            this.round(value, snap): 
+            snap.reduce((diff, curr) => Math.abs(curr - value) <= Math.abs(diff - value) ? curr : diff) : 0;
+        this.set.value({v: target});
     }
 });
 customElements.define('discrete-knob', DKnob = class extends Knob {
